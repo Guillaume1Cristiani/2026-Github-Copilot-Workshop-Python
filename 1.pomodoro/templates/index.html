@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pomodoro Timer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body>
+    <main class="app-shell" aria-label="Pomodoro Timer">
+      <section class="timer-card" aria-label="Timer card">
+        <header class="card-header">
+          <h1>Pomodoro Timer</h1>
+          <div class="window-controls" aria-hidden="true">
+            <span>-</span>
+            <span>□</span>
+            <span>×</span>
+          </div>
+        </header>
+
+        <div class="mode-label">Focus Session</div>
+
+        <div class="ring-wrapper" role="img" aria-label="25 minutes remaining">
+          <div class="ring"></div>
+          <div class="time-value">25:00</div>
+        </div>
+
+        <div class="actions" aria-label="Timer actions">
+          <button type="button" class="btn btn-primary">Start</button>
+          <button type="button" class="btn btn-outline">Reset</button>
+        </div>
+
+        <section class="settings-placeholder" aria-label="Settings placeholder">
+          <h2>Settings (Placeholder)</h2>
+          <p>Focus 25m / Short Break 5m / Long Break 15m</p>
+        </section>
+
+        <section class="stats" aria-label="Today's progress">
+          <h2>Today's Progress</h2>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <p class="stat-value">4</p>
+              <p class="stat-label">Completed</p>
+            </div>
+            <div class="stat-item">
+              <p class="stat-value">1h 40m</p>
+              <p class="stat-label">Focus Time</p>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

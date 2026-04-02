@@ -1,0 +1,7 @@
+{
+  "name": "pomodoro-timer",
+  "private": true,
+  "scripts": {
+    "test:js": "node --test static/tests/*.test.mjs"
+  }
+}
