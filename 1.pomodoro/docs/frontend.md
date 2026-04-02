@@ -1,159 +1,159 @@
-# フロントエンドモジュール仕様
+# Frontend Module Specification
 
-> **実装状況**: MVP フェーズ。タイマーエンジン（`timerEngine.mjs`）は完全実装済み。UI コントローラー・API クライアントは未実装（`index.html` は現在静的表示）。
+> **Implementation status**: MVP phase. The timer engine (`timerEngine.mjs`) is fully implemented. UI controller and API client are not yet implemented (`index.html` is currently static display only).
 
-## ファイル構成
+## File Structure
 
 ```
 static/
 ├── js/
-│   └── timerEngine.mjs        # タイマー状態管理エンジン
+│   └── timerEngine.mjs        # Timer state management engine
 ├── css/
-│   └── style.css              # スタイルシート
+│   └── style.css              # Stylesheet
 ├── tests/
-│   └── timerEngine.test.mjs   # タイマーエンジンのユニットテスト
-└── images/                    # 画像アセット
+│   └── timerEngine.test.mjs   # Timer engine unit tests
+└── images/                    # Image assets
 
 templates/
-└── index.html                 # メイン HTML テンプレート
+└── index.html                 # Main HTML template
 ```
 
 ---
 
-## `timerEngine.mjs` — タイマーエンジン
+## `timerEngine.mjs` — Timer Engine
 
-純粋な JavaScript モジュール。DOM・Flask・ブラウザ API に一切依存せず、Node.js 上でも直接テスト可能。
+A pure JavaScript module. Has no dependency on the DOM, Flask, or any browser API, and can be tested directly in Node.js.
 
-### エクスポート
+### Exports
 
-| 名前 | 種別 | 説明 |
-|------|------|------|
-| `MODES` | 定数オブジェクト | タイマーモードの列挙値 |
-| `DEFAULT_SETTINGS` | 定数オブジェクト | デフォルトのタイマー設定 |
-| `PomodoroTimerEngine` | クラス | タイマーの状態管理エンジン |
+| Name | Kind | Description |
+|------|------|-------------|
+| `MODES` | Constant object | Enumeration of timer modes |
+| `DEFAULT_SETTINGS` | Constant object | Default timer settings |
+| `PomodoroTimerEngine` | Class | Timer state management engine |
 
 ---
 
-### `PomodoroTimerEngine` クラス
+### `PomodoroTimerEngine` Class
 
-#### コンストラクタ
+#### Constructor
 
 ```js
 new PomodoroTimerEngine(settings = {}, initialMode = MODES.FOCUS)
 ```
 
-| 引数 | 型 | デフォルト | 説明 |
-|------|------|------|------|
-| `settings` | オブジェクト | `{}` | 部分的な設定（`DEFAULT_SETTINGS` にマージ） |
-| `initialMode` | string | `MODES.FOCUS` | 初期モード |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `settings` | object | `{}` | Partial settings (merged into `DEFAULT_SETTINGS`) |
+| `initialMode` | string | `MODES.FOCUS` | Initial mode |
 
-#### メソッド一覧
+#### Method Summary
 
-| メソッド | 引数 | 戻り値 | 説明 |
-|----------|------|--------|------|
-| `getState(nowMs?)` | `nowMs: number` | `TimerState` | 現在の状態を返す |
-| `start(nowMs?)` | `nowMs: number` | `TimerState` | タイマーを開始する。実行中の場合は `Error` |
-| `pause(nowMs?)` | `nowMs: number` | `TimerState` | タイマーを一時停止する。停止中の場合は `Error` |
-| `resume(nowMs?)` | `nowMs: number` | `TimerState` | タイマーを再開する。実行中または残り 0 秒の場合は `Error` |
-| `reset()` | なし | `TimerState` | 現在モードの初期時間にリセット |
-| `tick(nowMs?)` | `nowMs: number` | `{ completed: boolean, state: TimerState }` | 時間を同期し、セッション完了を検出 |
-| `setMode(mode)` | `mode: string` | `TimerState` | モードを変更してリセット |
-| `advanceMode()` | なし | `TimerState` | ポモドーロサイクルに従い次のモードへ自動遷移 |
-| `updateSettings(partialSettings?)` | `partialSettings: object` | 新しい設定オブジェクト | 設定を更新。停止中なら残り時間も再計算 |
-| `getDurationForMode(mode)` | `mode: string` | `number` | 指定モードの設定秒数を返す |
+| Method | Parameters | Returns | Description |
+|--------|-----------|---------|-------------|
+| `getState(nowMs?)` | `nowMs: number` | `TimerState` | Returns the current state |
+| `start(nowMs?)` | `nowMs: number` | `TimerState` | Starts the timer. Throws `Error` if already running |
+| `pause(nowMs?)` | `nowMs: number` | `TimerState` | Pauses the timer. Throws `Error` if already stopped |
+| `resume(nowMs?)` | `nowMs: number` | `TimerState` | Resumes the timer. Throws `Error` if running or 0 seconds remaining |
+| `reset()` | none | `TimerState` | Resets to the initial time for the current mode |
+| `tick(nowMs?)` | `nowMs: number` | `{ completed: boolean, state: TimerState }` | Syncs time and detects session completion |
+| `setMode(mode)` | `mode: string` | `TimerState` | Changes mode and resets |
+| `advanceMode()` | none | `TimerState` | Automatically advances to the next mode following the Pomodoro cycle |
+| `updateSettings(partialSettings?)` | `partialSettings: object` | New settings object | Updates settings. If stopped, also recalculates remaining time |
+| `getDurationForMode(mode)` | `mode: string` | `number` | Returns the configured duration in seconds for the given mode |
 
-#### `advanceMode()` の遷移ルール
+#### `advanceMode()` Transition Rules
 
-- **集中 → 短い休憩 or 長い休憩**: `completedFocusSessions` をインクリメントし、`completedFocusSessions % longBreakInterval === 0` なら長い休憩、それ以外は短い休憩。
-- **短い休憩 / 長い休憩 → 集中**: 無条件に集中モードへ戻る。
+- **Focus → Short Break or Long Break**: Increments `completedFocusSessions`; if `completedFocusSessions % longBreakInterval === 0`, transitions to long break, otherwise to short break.
+- **Short Break / Long Break → Focus**: Unconditionally returns to focus mode.
 
-#### 使用例
+#### Usage Example
 
 ```js
 import { PomodoroTimerEngine, MODES } from "./timerEngine.mjs";
 
 const engine = new PomodoroTimerEngine({ focusSeconds: 25 * 60 });
 
-// タイマー開始
+// Start the timer
 engine.start(Date.now());
 
-// 現在の状態取得
+// Get current state
 const state = engine.getState(Date.now());
-console.log(state.remainingSeconds); // 残り秒数
+console.log(state.remainingSeconds); // remaining seconds
 
-// 一時停止
+// Pause
 engine.pause(Date.now());
 
-// 再開
+// Resume
 engine.resume(Date.now());
 
-// モード自動遷移（集中完了後）
-engine.advanceMode(); // → SHORT_BREAK または LONG_BREAK
+// Auto-advance mode (after focus session completes)
+engine.advanceMode(); // → SHORT_BREAK or LONG_BREAK
 ```
 
 ---
 
-## `style.css` — スタイルシート
+## `style.css` — Stylesheet
 
-### CSS カスタムプロパティ（変数）
+### CSS Custom Properties (Variables)
 
-`:root` で定義されたグローバル変数。
+Global variables defined on `:root`.
 
-| 変数名 | デフォルト値 | 説明 |
-|--------|-------------|------|
-| `--bg-start` | `#5f63d7` | 背景グラデーション開始色 |
-| `--bg-end` | `#6a56b8` | 背景グラデーション終了色 |
-| `--card-bg` | `#eeedf2` | カード背景色 |
-| `--stats-bg` | `#dcdeea` | 統計セクション背景色 |
-| `--text-main` | `#25252d` | メインテキスト色 |
-| `--text-muted` | `#6f7182` | ミュートテキスト色 |
-| `--accent` | `#6a76e7` | アクセントカラー |
-| `--ring-track` | `#e3e4ea` | プログレスリングのトラック色 |
+| Variable | Default Value | Description |
+|----------|--------------|-------------|
+| `--bg-start` | `#5f63d7` | Background gradient start color |
+| `--bg-end` | `#6a56b8` | Background gradient end color |
+| `--card-bg` | `#eeedf2` | Card background color |
+| `--stats-bg` | `#dcdeea` | Stats section background color |
+| `--text-main` | `#25252d` | Main text color |
+| `--text-muted` | `#6f7182` | Muted text color |
+| `--accent` | `#6a76e7` | Accent color |
+| `--ring-track` | `#e3e4ea` | Progress ring track color |
 
-### 主要コンポーネントクラス
+### Key Component Classes
 
-| クラス | 説明 |
-|--------|------|
-| `.app-shell` | 全画面グリッドレイアウトのルートコンテナ |
-| `.timer-card` | 最大幅 400px のカード（角丸・影付き） |
-| `.card-header` | タイトルとウィンドウコントロールを並べるフレックスコンテナ |
-| `.mode-label` | 現在のモード表示テキスト |
-| `.ring-wrapper` | プログレスリングの配置コンテナ（240×240px） |
-| `.ring` | `conic-gradient` を使ったプログレスリング |
-| `.time-value` | リング中央の残り時間テキスト（絶対配置） |
-| `.actions` | スタート・リセットボタンのフレックスコンテナ |
-| `.btn` / `.btn-primary` / `.btn-outline` | ボタンスタイル |
-| `.stats` | 統計セクションのカード |
-| `.stats-grid` | 統計値の 2 列グリッドレイアウト |
-| `.settings-placeholder` | 設定プレースホルダー（点線ボーダー） |
+| Class | Description |
+|-------|-------------|
+| `.app-shell` | Root container with full-screen grid layout |
+| `.timer-card` | Card with max-width 400px (rounded corners and shadow) |
+| `.card-header` | Flex container for title and window controls |
+| `.mode-label` | Text displaying the current mode |
+| `.ring-wrapper` | Positioning container for the progress ring (240×240px) |
+| `.ring` | Progress ring using `conic-gradient` |
+| `.time-value` | Remaining time text centered in the ring (absolutely positioned) |
+| `.actions` | Flex container for start and reset buttons |
+| `.btn` / `.btn-primary` / `.btn-outline` | Button styles |
+| `.stats` | Stats section card |
+| `.stats-grid` | 2-column grid layout for stats values |
+| `.settings-placeholder` | Settings placeholder (dashed border) |
 
-レスポンシブ対応: `@media (max-width: 480px)` でモバイル向けのフォントサイズ・パディング調整。
-
----
-
-## `index.html` — メインテンプレート
-
-Flask の Jinja2 テンプレート。現在は静的なプレースホルダー表示のみ。
-
-| 要素 | 内容 |
-|------|------|
-| タイトル | `Pomodoro Timer` |
-| CSS | `static/css/style.css` をロード |
-| モード表示 | `Focus Session`（固定値） |
-| 残り時間 | `25:00`（固定値） |
-| ボタン | Start / Reset（非活性） |
-| 設定 | `Settings (Placeholder)` プレースホルダー |
-| 統計 | `4` 回完了 / `1h 40m` 集中時間（固定値） |
-
-> JavaScript との連携は未実装。今後 UI コントローラーが `timerEngine.mjs` と接続される予定。
+Responsive: `@media (max-width: 480px)` adjusts font sizes and padding for mobile.
 
 ---
 
-## テスト実行
+## `index.html` — Main Template
+
+Flask Jinja2 template. Currently displays static placeholder content only.
+
+| Element | Content |
+|---------|---------|
+| Title | `Pomodoro Timer` |
+| CSS | Loads `static/css/style.css` |
+| Mode display | `Focus Session` (hardcoded) |
+| Remaining time | `25:00` (hardcoded) |
+| Buttons | Start / Reset (inactive) |
+| Settings | `Settings (Placeholder)` placeholder |
+| Stats | `4` sessions completed / `1h 40m` focus time (hardcoded) |
+
+> JavaScript integration is not yet implemented. A UI controller will connect to `timerEngine.mjs` in a future phase.
+
+---
+
+## Running Tests
 
 ```bash
 cd 1.pomodoro
 npm run test:js
 ```
 
-`static/tests/timerEngine.test.mjs` が Node.js のビルトインテストランナーで実行されます。
+`static/tests/timerEngine.test.mjs` is executed with the Node.js built-in test runner.

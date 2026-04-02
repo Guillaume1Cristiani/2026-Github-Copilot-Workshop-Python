@@ -1,14 +1,14 @@
-# データモデル仕様
+# Data Model Specification
 
-> **実装状況**: MVP フェーズ。データモデルは JavaScript のタイマーエンジン内に定義されています。Python 側のドメインモデル・データベーススキーマは未実装。
+> **Implementation status**: MVP phase. Data models are defined within the JavaScript timer engine. Python domain models and database schema are not yet implemented.
 
-## JavaScript タイマーモデル
+## JavaScript Timer Models
 
-タイマーの状態と設定は `static/js/timerEngine.mjs` 内で管理されます。
+Timer state and settings are managed inside `static/js/timerEngine.mjs`.
 
 ---
 
-### モード定数 (`MODES`)
+### Mode Constants (`MODES`)
 
 ```js
 const MODES = Object.freeze({
@@ -18,17 +18,17 @@ const MODES = Object.freeze({
 });
 ```
 
-| 値 | 説明 |
-|----|------|
-| `"focus"` | 集中セッション |
-| `"short_break"` | 短い休憩 |
-| `"long_break"` | 長い休憩 |
+| Value | Description |
+|-------|-------------|
+| `"focus"` | Focus session |
+| `"short_break"` | Short break |
+| `"long_break"` | Long break |
 
 ---
 
-### 設定オブジェクト (`Settings`)
+### Settings Object (`Settings`)
 
-`PomodoroTimerEngine` のコンストラクタ引数および `updateSettings()` で使用。
+Used as the constructor argument for `PomodoroTimerEngine` and in `updateSettings()`.
 
 ```js
 const DEFAULT_SETTINGS = Object.freeze({
@@ -39,59 +39,59 @@ const DEFAULT_SETTINGS = Object.freeze({
 });
 ```
 
-| フィールド | 型 | デフォルト値 | 説明 |
-|---|---|---|---|
-| `focusSeconds` | 正の整数 | `1500` | 集中セッションの長さ（秒） |
-| `shortBreakSeconds` | 正の整数 | `300` | 短い休憩の長さ（秒） |
-| `longBreakSeconds` | 正の整数 | `900` | 長い休憩の長さ（秒） |
-| `longBreakInterval` | 正の整数 | `4` | 長い休憩までの集中セッション数 |
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `focusSeconds` | positive integer | `1500` | Duration of a focus session (seconds) |
+| `shortBreakSeconds` | positive integer | `300` | Duration of a short break (seconds) |
+| `longBreakSeconds` | positive integer | `900` | Duration of a long break (seconds) |
+| `longBreakInterval` | positive integer | `4` | Number of focus sessions before a long break |
 
-全フィールドは正の整数でなければならず、違反すると `Error` がスローされます。
+All fields must be positive integers; violations will throw an `Error`.
 
 ---
 
-### タイマー状態オブジェクト (`TimerState`)
+### Timer State Object (`TimerState`)
 
-`getState()` および各操作メソッドの戻り値として返されます。
+Returned by `getState()` and all operation methods.
 
 ```js
 {
-  mode: "focus",              // MODES のいずれか
-  isRunning: false,           // 実行中かどうか
-  remainingSeconds: 1500,     // 残り秒数
-  completedFocusSessions: 0,  // 完了した集中セッション数
-  endTimestampMs: null,       // 実行中の場合は終了タイムスタンプ (ms)、停止中は null
+  mode: "focus",              // one of MODES
+  isRunning: false,           // whether the timer is running
+  remainingSeconds: 1500,     // remaining seconds
+  completedFocusSessions: 0,  // number of completed focus sessions
+  endTimestampMs: null,       // end timestamp (ms) when running, null when stopped
 }
 ```
 
-| フィールド | 型 | 説明 |
-|---|---|---|
-| `mode` | `string` | 現在のモード（`MODES` 定数を参照） |
-| `isRunning` | `boolean` | タイマーが動作中かどうか |
-| `remainingSeconds` | `number` | 現在のモードの残り秒数 |
-| `completedFocusSessions` | `number` | 累計の完了集中セッション数 |
-| `endTimestampMs` | `number \| null` | 実行中の終了タイムスタンプ (ms)。停止中は `null` |
+| Field | Type | Description |
+|-------|------|-------------|
+| `mode` | `string` | Current mode (see `MODES` constants) |
+| `isRunning` | `boolean` | Whether the timer is currently running |
+| `remainingSeconds` | `number` | Remaining seconds for the current mode |
+| `completedFocusSessions` | `number` | Total number of completed focus sessions |
+| `endTimestampMs` | `number \| null` | End timestamp (ms) when running; `null` when stopped |
 
 ---
 
-## 今後追加予定のモデル
+## Planned Future Models
 
-バックエンド実装時に以下が追加される予定です。
+The following will be added when the backend is implemented.
 
-### Session（完了セッション）
+### Session (completed session)
 
-| フィールド | 型 | 説明 |
-|---|---|---|
-| `id` | integer | 主キー |
-| `mode` | string | セッションのモード |
-| `completed_at` | datetime | 完了日時 |
-| `duration_seconds` | integer | セッションの長さ（秒） |
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | integer | Primary key |
+| `mode` | string | Session mode |
+| `completed_at` | datetime | Completion datetime |
+| `duration_seconds` | integer | Session duration (seconds) |
 
-### Settings（タイマー設定・バックエンド永続化）
+### Settings (timer settings — backend persistence)
 
-| フィールド | 型 | 説明 |
-|---|---|---|
-| `focus_seconds` | integer | 集中セッションの長さ（秒） |
-| `short_break_seconds` | integer | 短い休憩の長さ（秒） |
-| `long_break_seconds` | integer | 長い休憩の長さ（秒） |
-| `long_break_interval` | integer | 長い休憩までの集中セッション数 |
+| Field | Type | Description |
+|-------|------|-------------|
+| `focus_seconds` | integer | Duration of a focus session (seconds) |
+| `short_break_seconds` | integer | Duration of a short break (seconds) |
+| `long_break_seconds` | integer | Duration of a long break (seconds) |
+| `long_break_interval` | integer | Number of focus sessions before a long break |

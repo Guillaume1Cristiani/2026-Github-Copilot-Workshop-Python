@@ -1,61 +1,61 @@
-# アーキテクチャ概要
+# Architecture Overview
 
-> **実装状況**: MVP フェーズ（フェーズ 1）。フロントエンドのタイマーエンジンとスタティックな UI のみ実装済み。バックエンド API・データベース・サービス層は未実装。
+> **Implementation status**: MVP phase (Phase 1). Only the frontend timer engine and static UI are implemented. Backend API, database, and service layer are not yet implemented.
 
-## システム全体像
+## System Overview
 
-フロントエンド主導のシングルページアプリケーション。Flask はテンプレートとスタティックファイルのホスティングのみを担当し、タイマーのロジックはすべてブラウザ上の JavaScript で実行されます。
+A frontend-driven single-page application. Flask is responsible only for serving templates and static files; all timer logic runs in JavaScript in the browser.
 
 ```
-ブラウザ (JavaScript)
+Browser (JavaScript)
     └── PomodoroTimerEngine (timerEngine.mjs)
-            ↓ (DOM 操作は今後実装予定)
+            ↓ (DOM integration planned for future)
         HTML/CSS (index.html / style.css)
 
 Flask (app.py)
-    ├── GET /        → index.html を返す
+    ├── GET /        → returns index.html
     └── GET /health  → {"status": "ok"}
 ```
 
-## 現在実装済みの層
+## Currently Implemented Layers
 
-### プレゼンテーション層
+### Presentation Layer
 
-| ファイル | 役割 |
-|----------|------|
-| `templates/index.html` | メイン UI テンプレート（現在は静的表示） |
-| `static/css/style.css` | スタイルシート |
-| `static/js/timerEngine.mjs` | タイマー状態管理エンジン（純粋 JavaScript） |
+| File | Role |
+|------|------|
+| `templates/index.html` | Main UI template (currently static display only) |
+| `static/css/style.css` | Stylesheet |
+| `static/js/timerEngine.mjs` | Timer state management engine (pure JavaScript) |
 
-### アプリケーション層
+### Application Layer
 
-| ファイル | 役割 |
-|----------|------|
-| `app.py` | Flask アプリケーションファクトリ。ルート `/` と `/health` を登録 |
+| File | Role |
+|------|------|
+| `app.py` | Flask application factory. Registers routes `/` and `/health` |
 
-## アプリケーションファクトリパターン
+## Application Factory Pattern
 
-`app.py` は `create_app()` 関数を通じて Flask インスタンスを生成します。
+`app.py` creates the Flask instance via a `create_app()` function.
 
 ```python
 def create_app() -> Flask:
     app = Flask(__name__)
-    # ルート登録
+    # route registration
     return app
 
 app = create_app()
 ```
 
-## 設計原則
+## Design Principles
 
-- **ドリフトセーフなタイマー**: 終了タイムスタンプを基点に `remaining = max(0, endTimestampMs - now)` を計算し、tab 停止後も正確な残り時間を維持する。
-- **純粋ロジック分離**: `PomodoroTimerEngine` はフレームワーク・DOM に依存せず、Node.js テストで直接実行可能。
-- **段階的デリバリー**: MVP → バックエンド API 追加 → 通知・アクセシビリティ改善の順に拡張する。
+- **Drift-safe timer**: Calculates remaining time as `remaining = max(0, endTimestampMs - now)` based on the end timestamp, maintaining accurate remaining time even after tab suspension.
+- **Pure logic separation**: `PomodoroTimerEngine` has no dependency on any framework, DOM, or browser API and can be run directly in Node.js tests.
+- **Incremental delivery**: Expand in order: MVP → add backend API → notifications and accessibility improvements.
 
-## 今後追加予定の層
+## Planned Future Layers
 
-- `services/` — ビジネスロジック（PomodoroService）
-- `repositories/` — データアクセス（SQLite アダプター）
-- `routes/api.py` — REST API エンドポイント
-- UI コントローラー（DOM バインディング）
-- API クライアント（fetch ラッパー）
+- `services/` — Business logic (PomodoroService)
+- `repositories/` — Data access (SQLite adapter)
+- `routes/api.py` — REST API endpoints
+- UI controller (DOM bindings)
+- API client (fetch wrapper)

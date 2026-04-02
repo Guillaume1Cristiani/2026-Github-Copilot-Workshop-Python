@@ -1,32 +1,32 @@
-# API リファレンス
+# API Reference
 
-> **実装状況**: MVP フェーズ。バックエンド API は `/` と `/health` のみ実装済み。設定・セッション・統計の API は未実装（今後追加予定）。
+> **Implementation status**: MVP phase. Only the `/` and `/health` backend API endpoints are implemented. Settings, session, and statistics APIs are not yet implemented (planned for future phases).
 
-## エンドポイント一覧
+## Endpoints
 
 ### `GET /`
 
-アプリケーションのメインページを返します。
+Returns the main page of the application.
 
-**レスポンス**
+**Response**
 
-| 項目 | 内容 |
-|------|------|
-| ステータスコード | `200 OK` |
+| Field | Value |
+|-------|-------|
+| Status code | `200 OK` |
 | Content-Type | `text/html` |
-| ボディ | `templates/index.html` をレンダリングした HTML |
+| Body | HTML rendered from `templates/index.html` |
 
 ---
 
 ### `GET /health`
 
-サーバーの死活確認用エンドポイント。
+Health check endpoint for the server.
 
-**レスポンス**
+**Response**
 
-| 項目 | 内容 |
-|------|------|
-| ステータスコード | `200 OK` |
+| Field | Value |
+|-------|-------|
+| Status code | `200 OK` |
 | Content-Type | `application/json` |
 
 ```json
@@ -35,13 +35,13 @@
 
 ---
 
-## 今後実装予定のエンドポイント
+## Planned Future Endpoints
 
-アーキテクチャ設計書に基づき、以下のエンドポイントが将来追加される予定です。
+Based on the architecture design, the following endpoints will be added in future phases.
 
-| メソッド | パス | 説明 |
-|----------|------|------|
-| `GET` | `/api/settings` | タイマー設定の取得 |
-| `PUT` | `/api/settings` | タイマー設定の更新 |
-| `POST` | `/api/sessions` | 完了セッションの記録 |
-| `GET` | `/api/stats/today` | 本日の統計情報取得 |
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/settings` | Retrieve timer settings |
+| `PUT` | `/api/settings` | Update timer settings |
+| `POST` | `/api/sessions` | Record a completed session |
+| `GET` | `/api/stats/today` | Retrieve today's statistics |
